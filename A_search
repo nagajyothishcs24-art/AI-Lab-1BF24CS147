@@ -1,0 +1,48 @@
+def solve_8_puzzle(start, goal=(1, 2, 3, 8, 0, 4, 7,  6, 5)):
+    def get_f(state, g):
+        h = sum(abs(i//3 - goal.index(s)//3) + abs(i%3 - goal.index(s)%3)
+                for i, s in enumerate(state) if s != 0)
+        return g + h
+
+    open_set = [[get_f(start, 0), 0, start]]
+    parents = {start: (None, "Start")}
+    visited = set()
+
+    while open_set:
+        open_set.sort(key=lambda x: x)
+        f, g, cur = open_set.pop(0)
+
+        if cur == goal:
+            path = []
+            while cur:
+                parent, move = parents[cur]
+                path.append((cur, move))
+                cur = parent
+            return path[::-1]
+
+        visited.add(cur)
+        b_idx = cur.index(0)
+        r, c = b_idx // 3, b_idx % 3
+
+        moves = [(-1, 0, "Up"), (1, 0, "Down"), (0, -1, "Left"), (0, 1, "Right")]
+        for dr, dc, move_name in moves:
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < 3 and 0 <= nc < 3:
+                n_idx = nr * 3 + nc
+               
+                nxt = list(cur)
+                nxt[b_idx], nxt[n_idx] = nxt[n_idx], nxt[b_idx]
+                nxt = tuple(nxt)
+
+                if nxt not in visited and nxt not in parents:
+                    parents[nxt] = (cur, move_name)
+                    open_set.append([get_f(nxt, g + 1), g + 1, nxt])
+    return None
+
+if __name__ == "__main__":
+    start_layout = (2,8,3,1,6,4,7,0,5)
+    solution = solve_8_puzzle(start_layout)
+   
+    print(f"Solved in {len(solution) - 1} steps!")
+    for step, (board, move) in enumerate(solution):
+        print(f"Step {step} [{move}]: {board[:3]} {board[3:6]} {board[6:]}")
